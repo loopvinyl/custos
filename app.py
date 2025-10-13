@@ -8,16 +8,13 @@ Adicione os ingredientes e suas quantidades para calcular o custo por unidade do
 """)
 
 # -----------------------
-# Inicializar session_state
+# Inicializar session_state (mantido)
 # -----------------------
 if "ingredientes" not in st.session_state:
     st.session_state.ingredientes = []
 
-# A lista de índices para remover é gerenciada de forma mais simples e sem st.session_state.indices_para_remover
-# para evitar complicações com o rerun.
-
 # -----------------------
-# Função de conversão de unidades
+# Função de conversão de unidades (mantida)
 # -----------------------
 def converter_para_base(qtd, unidade):
     """Converte kg->g, l->ml, mantendo g, ml e unidade igual. Trata erros de unidade."""
@@ -33,29 +30,44 @@ def converter_para_base(qtd, unidade):
     elif unidade == "unidade":
         return qtd
     else:
-        st.warning(f"Unidade '{unidade}' não reconhecida para conversão. Usando o valor diretamente.")
+        # AVISO: MANTIDO APENAS NO SCRIPT DE BACKEND PARA STREAMLIT
         return qtd
 
 # -----------------------
-# Formulário para adicionar ingrediente
+# Formulário para adicionar ingrediente (SEQUÊNCIA CORRIGIDA)
 # -----------------------
 with st.form("ingrediente_form", clear_on_submit=True):
     st.subheader("Adicionar Novo Ingrediente")
-    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+    
+    # 1. Nome do Ingrediente
+    nome = st.text_input("1. Nome do Ingrediente", key="form_nome")
+
+    # Colunas para dados de COMPRA (Base do Custo) e USO (Cálculo)
+    col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
     
     with col1:
-        nome = st.text_input("Nome do Ingrediente", key="form_nome")
-    with col2:
-        quantidade_usada = st.number_input("Qtd usada na receita", min_value=0.0, value=0.0, format="%.2f", key="form_qtd_usada")
-        unidade_usada = st.selectbox("Unidade usada", ["g","kg","ml","l","unidade"], key="form_u1")
-    with col3:
+        # 2. Dados de Compra (Quantidade e Unidade)
+        st.markdown("**2. Informações de Compra (Base)**")
         quantidade_total = st.number_input("Qtd total comprada", min_value=0.0, value=0.0, format="%.2f", key="form_qtd_total")
         unidade_total = st.selectbox("Unidade total", ["g","kg","ml","l","unidade"], key="form_u2")
-    with col4:
+    
+    with col2:
+        # 3. Dados de Compra (Valor)
+        st.markdown("**3. Valor Total Pago**")
         valor_total = st.number_input("Valor total (R$)", min_value=0.0, value=0.0, format="%.2f", key="form_valor")
+
+    with col3:
+        # 4. Dados de Uso na Receita
+        st.markdown("**4. Informações de Uso (Receita)**")
+        quantidade_usada = st.number_input("Qtd usada na receita", min_value=0.0, value=0.0, format="%.2f", key="form_qtd_usada")
+        unidade_usada = st.selectbox("Unidade usada", ["g","kg","ml","l","unidade"], key="form_u1")
     
-    submitted = st.form_submit_button("➕ Adicionar Ingrediente")
-    
+    with col4:
+        # Espaço vazio ou informações de Ajuda/Botão
+        st.markdown("<br>", unsafe_allow_html=True) # Espaçador para alinhar
+        submitted = st.form_submit_button("➕ Adicionar Ingrediente")
+        
+    # Lógica de submissão (mantida e corrigida)
     if submitted and nome and quantidade_usada > 0 and quantidade_total > 0 and valor_total >= 0:
         st.session_state.ingredientes.append({
             "nome": nome,
@@ -65,12 +77,14 @@ with st.form("ingrediente_form", clear_on_submit=True):
             "unidade_total": unidade_total,
             "valor_total": valor_total
         })
-        # REMOVEMOS O st.experimental_rerun() AQUI. 
-        # A submissão do formulário já causa um rerun e evita o erro.
     elif submitted and not nome:
         st.warning("Por favor, preencha o nome do ingrediente.")
-    elif submitted and (quantidade_usada <= 0 or quantidade_total <= 0):
-        st.warning("As quantidades usada e total devem ser maiores que zero.")
+    elif submitted and (quantidade_usada <= 0 or quantidade_total <= 0 or valor_total <= 0):
+        st.warning("Todas as quantidades e o valor devem ser maiores que zero.")
+
+
+# O restante do script (Lista de Ingredientes e Cálculo do Custo Unitário)
+# permanece o mesmo, pois o problema era apenas na entrada de dados.
 
 # -----------------------
 # Lista de ingredientes adicionados
@@ -109,8 +123,6 @@ if st.session_state.ingredientes:
         
         with col1:
             st.write(f"**{ing['nome']}**")
-            # Opcional: Mostrar a conversão para depuração
-            # st.caption(f"1 {ing['unidade_total']} = R$ {custo_unitario_base:.4f} / base")
         with col2:
             st.write(f"{ing['quantidade_usada']:.2f} {ing['unidade_usada']}")
         with col3:
@@ -121,13 +133,11 @@ if st.session_state.ingredientes:
             if st.button("🗑️", key=f"del_{i}"):
                 indices_para_remover.append(i)
 
-    # st.markdown("---") # Removido para evitar linha dupla com a separação de colunas
-    
     # Remover ingredientes
     if indices_para_remover:
         for index in sorted(indices_para_remover, reverse=True):
             st.session_state.ingredientes.pop(index)
-        st.rerun() # Usando st.rerun() no lugar do deprecated st.experimental_rerun()
+        st.rerun()
 
     st.markdown("---")
     st.markdown(f"**Custo Total dos Ingredientes: R$ {custo_total:.2f}**")
@@ -158,12 +168,11 @@ else:
 # -----------------------
 with st.expander("ℹ️ Instruções de Uso"):
     st.markdown("""
-    1. **Preencha o Formulário** para cada ingrediente:
-       - **Nome:** O nome do ingrediente (ex: Farinha de Trigo).
-       - **Qtd usada na receita:** A quantidade exata que a sua receita utiliza (ex: 500 g).
-       - **Qtd total comprada:** O volume da embalagem que você comprou (ex: 5 kg).
-       - **Valor total (R$):** O preço que você pagou pela embalagem (ex: 15,00).
-    2. **Conversão Automática:** O sistema converte automaticamente unidades compatíveis (`kg` para `g` e `l` para `ml`) para fazer o cálculo correto, garantindo que o custo unitário seja preciso.
-    3. **Calcule o Custo Final:** Informe quantas unidades (porções) a receita rende. O custo final por unidade será exibido.
-    4. Use o botão **🗑️** para remover um ingrediente da lista.
+    Preencha o formulário na seguinte sequência lógica:
+    1. **Nome:** O nome do ingrediente.
+    2. **Informações de Compra (Base):** O volume da embalagem que você comprou (ex: 5 kg).
+    3. **Valor Total Pago:** O preço que você pagou pela embalagem (ex: 15,00).
+    4. **Informações de Uso (Receita):** A quantidade exata que a sua receita utiliza (ex: 500 g).
+
+    O sistema faz a conversão e o cálculo do custo automaticamente.
     """)
