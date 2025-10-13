@@ -30,17 +30,17 @@ def converter_para_base(qtd, unidade):
     elif unidade == "unidade":
         return qtd
     else:
-        # AVISO: MANTIDO APENAS NO SCRIPT DE BACKEND PARA STREAMLIT
         return qtd
 
 # -----------------------
-# Formulário para adicionar ingrediente (SEQUÊNCIA CORRIGIDA)
+# Formulário para adicionar ingrediente (COM NUMERAÇÃO AJUSTADA)
 # -----------------------
 with st.form("ingrediente_form", clear_on_submit=True):
     st.subheader("Adicionar Novo Ingrediente")
     
-    # 1. Nome do Ingrediente
-    nome = st.text_input("1. Nome do Ingrediente", key="form_nome")
+    # 1. Nome do Ingrediente (Ajustado com st.markdown para garantir o número)
+    st.markdown("##### 1. Nome do Ingrediente")
+    nome = st.text_input("Nome", key="form_nome", label_visibility="collapsed")
 
     # Colunas para dados de COMPRA (Base do Custo) e USO (Cálculo)
     col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
@@ -82,9 +82,6 @@ with st.form("ingrediente_form", clear_on_submit=True):
     elif submitted and (quantidade_usada <= 0 or quantidade_total <= 0 or valor_total <= 0):
         st.warning("Todas as quantidades e o valor devem ser maiores que zero.")
 
-
-# O restante do script (Lista de Ingredientes e Cálculo do Custo Unitário)
-# permanece o mesmo, pois o problema era apenas na entrada de dados.
 
 # -----------------------
 # Lista de ingredientes adicionados
