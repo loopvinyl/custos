@@ -8,13 +8,13 @@ Adicione os ingredientes e suas quantidades para calcular o custo por unidade do
 """)
 
 # -----------------------
-# Inicializar session_state (mantido)
+# Inicializar session_state
 # -----------------------
 if "ingredientes" not in st.session_state:
     st.session_state.ingredientes = []
 
 # -----------------------
-# Função de conversão de unidades (mantida)
+# Função de conversão de unidades
 # -----------------------
 def converter_para_base(qtd, unidade):
     """Converte kg->g, l->ml, mantendo g, ml e unidade igual. Trata erros de unidade."""
@@ -33,7 +33,7 @@ def converter_para_base(qtd, unidade):
         return qtd
 
 # -----------------------
-# Formulário para adicionar ingrediente (COM NUMERAÇÃO AJUSTADA)
+# Formulário para adicionar ingrediente (COM SEQUÊNCIA AJUSTADA)
 # -----------------------
 with st.form("ingrediente_form", clear_on_submit=True):
     st.subheader("Adicionar Novo Ingrediente")
@@ -67,7 +67,7 @@ with st.form("ingrediente_form", clear_on_submit=True):
         st.markdown("<br>", unsafe_allow_html=True) # Espaçador para alinhar
         submitted = st.form_submit_button("➕ Adicionar Ingrediente")
         
-    # Lógica de submissão (mantida e corrigida)
+    # Lógica de submissão 
     if submitted and nome and quantidade_usada > 0 and quantidade_total > 0 and valor_total >= 0:
         st.session_state.ingredientes.append({
             "nome": nome,
@@ -138,13 +138,16 @@ if st.session_state.ingredientes:
 
     st.markdown("---")
     st.markdown(f"**Custo Total dos Ingredientes: R$ {custo_total:.2f}**")
+    
+    # Adicionando um divisor para destacar a próxima seção
+    st.divider()
 
     # -----------------------
-    # Cálculo do custo unitário
+    # CÁLCULO DO CUSTO UNITÁRIO (PARTE SOLICITADA PELO USUÁRIO)
     # -----------------------
-    st.subheader("Cálculo do Custo Unitário")
+    st.subheader("Cálculo do Custo por Unidade Final")
     unidades_produzidas = st.number_input(
-        "Quantas unidades (porções) serão produzidas com esta receita?",
+        "Informe quantas unidades (porções/produtos) esta receita final gera:",
         min_value=1,
         value=1,
         key="unidades"
@@ -170,6 +173,8 @@ with st.expander("ℹ️ Instruções de Uso"):
     2. **Informações de Compra (Base):** O volume da embalagem que você comprou (ex: 5 kg).
     3. **Valor Total Pago:** O preço que você pagou pela embalagem (ex: 15,00).
     4. **Informações de Uso (Receita):** A quantidade exata que a sua receita utiliza (ex: 500 g).
+
+    Após a lista de ingredientes, informe quantas unidades finais sua receita produz para calcular o custo por unidade.
 
     O sistema faz a conversão e o cálculo do custo automaticamente.
     """)
